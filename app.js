@@ -28,7 +28,7 @@ app.post('/users', (req, res) => {
 }); */
 
 app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -37,7 +37,7 @@ app.use('/users', routerUsers);
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '64ca7ad1a48b9c1357812eb0', // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '64d6142e6d62d57db1306e64',
   };
 
   next();

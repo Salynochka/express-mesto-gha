@@ -16,8 +16,12 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserId = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch(() => {
+      if (res.status(400)) {
+        res.send({ message: 'Произошла ошибка' });
+        return;
+      }
       if (res.status(404)) {
         res.send({ message: 'Запрашиваемый пользователь не найден' });
         return;

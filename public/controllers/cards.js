@@ -18,7 +18,7 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link })
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.send(card))
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
