@@ -15,10 +15,12 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserId = (req, res) => {
-  User.findById(req.params.userId)
+  const { userId } = req.params;
+
+  User.findById(userId)
     .then((user) => res.send(user))
     .catch(() => {
-      if (res.status(400)) {
+      if (!userId) {
         res.send({ message: 'Произошла ошибка' });
         return;
       }
@@ -34,9 +36,10 @@ module.exports.getUserId = (req, res) => {
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
+  const { userId } = req.params;
 
-  User.findByIdAndUpdate(req.user.id, { name, about })
-    .then((user) => res.send({ data: user }))
+  User.findByIdAndUpdate(userId, { name, about })
+    .then((user) => res.send(user))
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
@@ -54,9 +57,10 @@ module.exports.updateUser = (req, res) => {
 
 module.exports.changeAvatar = (req, res) => {
   const { avatar } = req.body;
+  const { userId } = req.params;
 
-  User.findByIdAndUpdate(req.user.id, { avatar })
-    .then((user) => res.send({ data: user }))
+  User.findByIdAndUpdate(userId, { avatar })
+    .then((user) => res.send(user))
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
