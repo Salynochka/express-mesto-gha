@@ -32,7 +32,7 @@ module.exports.updateUser = (req, res) => {
 
   if (userId) {
     User.findByIdAndUpdate(userId, { name, about }, { new: 'true' })
-      .then((user) => res.send(user))
+      .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(400)) {
           res.send({ message: 'Произошла ошибка' });
@@ -43,7 +43,7 @@ module.exports.updateUser = (req, res) => {
         }
       });
   } else {
-    res.status(500).send({ message: 'На сервере произошла ошибка' });
+    res.status(400).send({ message: 'Произошла ошибка' });
   }
 };
 
@@ -53,7 +53,7 @@ module.exports.changeAvatar = (req, res) => {
 
   if (userId) {
     User.findByIdAndUpdate(userId, { avatar }, { new: 'true' })
-      .then((user) => res.send(user))
+      .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(400)) {
           res.send({ message: 'Произошла ошибка' });

@@ -55,7 +55,7 @@ module.exports.deleteCard = (req, res) => {
       }
       res.send(card);
     })
-    .catch(() => res.status(404).send({ message: 'Запрашиваемый пользователь не найден' }));
+    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.addLike = (req, res) => {
@@ -69,7 +69,7 @@ module.exports.addLike = (req, res) => {
       if (!card) {
         res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.send(card);
+      res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(400)) {
@@ -93,7 +93,7 @@ module.exports.deleteLike = (req, res) => {
       if (!card) {
         res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.send(card);
+      res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(400)) {
