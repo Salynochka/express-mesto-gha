@@ -17,9 +17,8 @@ module.exports.getCards = (req, res) => {
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  const { userId } = req.params;
 
-  Card.create({ name, link, owner: userId })
+  Card.create({ name, link, owner: req.params._id })
     .then((card) => {
       Card.findById(card._id)
         .populate('owner')
@@ -39,7 +38,7 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  if (req.params.userId.length === 24) {
+  if (req.params._id.length === 24) {
     Card.findByIdAndRemove(req.params.cardId)
       .then((card) => {
         if (!card) {
@@ -53,7 +52,7 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.addLike = (req, res) => {
-  if (req.params.userId.length === 24) {
+  if (req.params._id.length === 24) {
     Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -79,7 +78,7 @@ module.exports.addLike = (req, res) => {
 };
 
 module.exports.deleteLike = (req, res) => {
-  if (req.params.userId.length === 24) {
+  if (req.params._id.length === 24) {
     Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } }, // убрать _id из массива

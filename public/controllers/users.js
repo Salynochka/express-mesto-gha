@@ -29,8 +29,8 @@ module.exports.getUserId = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
-  if (req.params.userId) {
-    User.findByIdAndUpdate(req.params.userId, { name, about }, { new: 'true' })
+  if (req.params._id) {
+    User.findByIdAndUpdate(req.params._id, { name, about }, { new: 'true' })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(400)) {
@@ -48,10 +48,9 @@ module.exports.updateUser = (req, res) => {
 
 module.exports.changeAvatar = (req, res) => {
   const { avatar } = req.body;
-  const { userId } = req.params;
 
-  if (userId) {
-    User.findByIdAndUpdate(userId, { avatar }, { new: 'true' })
+  if (req.params._id) {
+    User.findByIdAndUpdate(req.params._id, { avatar }, { new: 'true' })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(400)) {
