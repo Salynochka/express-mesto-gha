@@ -1,13 +1,5 @@
 const Card = require('../models/card');
 
-/* class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ValidationError';
-    this.statusCode = 400;
-  }
-} */
-
 module.exports.getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
@@ -47,61 +39,75 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      res.send(card);
-    })
-    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+  if (req.params.userId.length === 24) {
+    Card.findByIdAndRemove(req.params.cardId)
+      .then((card) => {
+        if (!card) {
+          res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+          return;
+        }
+        res.status(200).send();
+      })
+      .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+  }
 };
 
 module.exports.addLike = (req, res) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true },
-  )
-    .populate(['owner', 'likes'])
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
-      }
-      res.status(200).send(card);
-    })
-    .catch(() => {
-      if (res.status(400)) {
-        res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(500)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+  if (req.params.userId.length === 24) {
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+      { new: true },
+    )
+      .populate(['owner', 'likes'])
+      .then((card) => {
+        if (!card) {
+          res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+        }
+        res.status(200).send(card);
+      })
+      .catch(() => {
+        if (res.status(400)) {
+          res.send({ message: 'Произошла ошибка' });
+          return;
+        }
+        if (res.status(500)) {
+          res.send({ message: 'На сервере произошла ошибка' });
+        }
+      });
+  }
 };
 
 module.exports.deleteLike = (req, res) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true },
-  )
-    .populate(['owner', 'likes'])
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
-      }
-      res.status(200).send(card);
-    })
-    .catch(() => {
-      if (res.status(400)) {
-        res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(500)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+  if (req.params.userId.length === 24) {
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $pull: { likes: req.user._id } }, // убрать _id из массива
+      { new: true },
+    )
+      .populate(['owner', 'likes'])
+      .then((card) => {
+        if (!card) {
+          res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+        }
+        res.status(200).send(card);
+      })
+      .catch(() => {
+        if (res.status(400)) {
+          res.send({ message: 'Произошла ошибка' });
+          return;
+        }
+        if (res.status(500)) {
+          res.send({ message: 'На сервере произошла ошибка' });
+        }
+      });
+  }
 };
+
+/* class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+    this.statusCode = 400;
+  }
+} */
