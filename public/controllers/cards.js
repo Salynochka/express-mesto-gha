@@ -1,9 +1,17 @@
 const Card = require('../models/card');
 
+/* class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+    this.statusCode = 400;
+  }
+} */
+
 module.exports.getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => res.send({ data: cards }))
+    .then((cards) => res.send(cards))
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
@@ -23,7 +31,7 @@ module.exports.createCard = (req, res) => {
     .then((card) => {
       Card.findById(card._id)
         .populate('owner')
-        .then((data) => res.send(data))
+        .then((data) => res.status(200).send(data))
         .catch(() => {
           res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
         });
@@ -40,7 +48,13 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
+      res.send(card);
+    })
     .catch(() => res.status(404).send({ message: 'Запрашиваемый пользователь не найден' }));
 };
 
@@ -50,14 +64,16 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => res.send(card))
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
+      res.send(card);
+    })
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(404)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
         return;
       }
       if (res.status(500)) {
@@ -72,14 +88,16 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((card) => res.send(card))
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
+      res.send(card);
+    })
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(404)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
         return;
       }
       if (res.status(500)) {
