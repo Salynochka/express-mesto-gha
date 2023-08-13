@@ -28,10 +28,9 @@ module.exports.getUserId = (req, res) => {
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
-  const { userId } = req.params;
 
-  if (userId) {
-    User.findByIdAndUpdate(userId, { name, about }, { new: 'true' })
+  if (req.params.userId) {
+    User.findByIdAndUpdate(req.params.userId, { name, about }, { new: 'true' })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(400)) {
