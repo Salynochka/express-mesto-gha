@@ -15,65 +15,57 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserId = (req, res) => {
-  const { userId } = req.params;
-
-  User.findById(userId)
-    .then((user) => res.send(user))
-    .catch(() => {
-      if (!userId) {
-        res.send({ message: 'Произошла ошибка' });
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
         return;
       }
-      if (res.status(404)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
-      if (res.status(500)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+      res.status(200).send(user);
+    })
+    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { name, about })
-    .then((user) => res.send(user))
-    .catch(() => {
-      if (res.status(400)) {
-        res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(404)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
-      if (res.status(500)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+  if (userId) {
+    User.findByIdAndUpdate(userId, { name, about }, { new: 'true' })
+      .then((user) => res.send(user))
+      .catch(() => {
+        if (res.status(400)) {
+          res.send({ message: 'Произошла ошибка' });
+          return;
+        }
+        if (res.status(404)) {
+          res.send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+      });
+  } else {
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
 module.exports.changeAvatar = (req, res) => {
   const { avatar } = req.body;
   const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { avatar })
-    .then((user) => res.send(user))
-    .catch(() => {
-      if (res.status(400)) {
-        res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(404)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
-      if (res.status(500)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+  if (userId) {
+    User.findByIdAndUpdate(userId, { avatar }, { new: 'true' })
+      .then((user) => res.send(user))
+      .catch(() => {
+        if (res.status(400)) {
+          res.send({ message: 'Произошла ошибка' });
+          return;
+        }
+        if (res.status(404)) {
+          res.send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+      });
+  } else {
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
 module.exports.createUser = (req, res) => {

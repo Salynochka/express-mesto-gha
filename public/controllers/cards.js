@@ -2,6 +2,7 @@ const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => res.send({ data: cards }))
     .catch(() => {
       if (res.status(400)) {
@@ -16,13 +17,20 @@ module.exports.getCards = (req, res) => {
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
+  const { userId } = req.params;
 
-  Card.create({ name, link })
-    .then((card) => res.send(card))
+  Card.create({ name, link, owner: userId })
+    .then((card) => {
+      Card.findById(card._id)
+        .populate('owner')
+        .then((data) => res.send(data))
+        .catch(() => {
+          res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+        });
+    })
     .catch(() => {
       if (res.status(400)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
       }
       if (res.status(500)) {
         res.send({ message: 'На сервере произошла ошибка' });
@@ -31,18 +39,14 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  const { cardId } = req.params;
-
-  Card.findByIdAndRemove(cardId)
+  Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res.send(card))
     .catch(() => res.status(404).send({ message: 'Запрашиваемый пользователь не найден' }));
 };
 
 module.exports.addLike = (req, res) => {
-  const { cardId } = req.params;
-
   Card.findByIdAndUpdate(
-    cardId,
+    req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
@@ -63,10 +67,8 @@ module.exports.addLike = (req, res) => {
 };
 
 module.exports.deleteLike = (req, res) => {
-  const { cardId } = req.params;
-
   Card.findByIdAndUpdate(
-    cardId,
+    req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
