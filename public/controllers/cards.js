@@ -43,7 +43,7 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      if (card) {
+      if (!card._id) {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
         return;
       }
