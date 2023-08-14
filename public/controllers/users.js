@@ -39,7 +39,6 @@ module.exports.updateUser = (req, res) => {
       .catch(() => {
         if (res.status(INCORRECT_DATE)) {
           res.send({ message: 'Произошла ошибка' });
-          return;
         }
         if (res.status(NOT_FOUND_ERROR)) {
           res.send({ message: 'Запрашиваемый пользователь не найден' });
@@ -59,7 +58,6 @@ module.exports.changeAvatar = (req, res) => {
       .catch(() => {
         if (res.status(INCORRECT_DATE)) {
           res.send({ message: 'Произошла ошибка' });
-          return;
         }
         if (res.status(NOT_FOUND_ERROR)) {
           res.send({ message: 'Запрашиваемый пользователь не найден' });
