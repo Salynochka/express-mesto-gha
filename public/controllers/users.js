@@ -34,7 +34,7 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
   if (req.user._id) {
-    User.findByIdAndUpdate(req.user._id, { name, about }, { new: 'true' })
+    User.findByIdAndUpdate(req.user._id, { name, about })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(INCORRECT_DATE)) {

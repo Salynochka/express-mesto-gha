@@ -32,9 +32,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/cards', routerCards);
-app.use('/users', routerUsers);
-
 app.use((req, res, next) => {
   req.user = {
     _id: '64d6142e6d62d57db1306e64',
@@ -42,5 +39,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+app.use('/cards', routerCards);
+app.use('/users', routerUsers);
 
 app.listen(PORT);
