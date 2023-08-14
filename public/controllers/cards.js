@@ -46,7 +46,6 @@ module.exports.deleteCard = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
       }
       if (res.status(NOT_FOUND_ERROR)) {
         res.send({ message: 'Запрашиваемая карточка не найдена' });
@@ -63,9 +62,8 @@ module.exports.addLike = (req, res) => {
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
       }
-      res.status(200).send(card);
+      return res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
@@ -90,7 +88,7 @@ module.exports.deleteLike = (req, res) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.status(200).send(card);
+      return res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
