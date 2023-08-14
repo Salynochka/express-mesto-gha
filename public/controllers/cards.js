@@ -79,15 +79,16 @@ module.exports.addLike = (req, res) => {
 };
 
 module.exports.deleteLike = (req, res) => {
+  const { cardId } = req.params.cardId;
+
   Card.findByIdAndUpdate(
-    req.params.cardId,
+    cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
       }
       res.status(200).send(card);
     })
