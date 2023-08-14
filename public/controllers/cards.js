@@ -23,15 +23,15 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => {
-      Card.findById(card._id)
+    .then((card) => res.status(200).send(card)) /* {
+       Card.findById(card._id)
         .orFail()
         .populate('owner')
         .then((data) => res.status(200).send(data))
         .catch(() => {
           res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         });
-    })
+    }) */
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
@@ -44,11 +44,12 @@ module.exports.deleteCard = (req, res) => {
     .orFail()
     .then((card) => { res.status(200).send(card); })
     .catch(() => {
-      if (res.status(INCORRECT_DATA)) {
-        res.send({ message: 'Произошла ошибка' });
-      }
       if (res.status(NOT_FOUND_ERROR)) {
         res.send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -62,8 +63,9 @@ module.exports.addLike = (req, res) => {
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
       }
-      return res.status(200).send(card);
+      res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
@@ -77,18 +79,17 @@ module.exports.addLike = (req, res) => {
 };
 
 module.exports.deleteLike = (req, res) => {
-  const { cardId } = req.params.cardId;
-
   Card.findByIdAndUpdate(
-    cardId,
+    req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
       }
-      return res.status(200).send(card);
+      res.status(200).send(card);
     })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
