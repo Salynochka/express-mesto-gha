@@ -20,6 +20,7 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserId = (req, res) => {
   User.findById(req.params.userId)
+    .orFail()
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
@@ -34,7 +35,7 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
   if (req.user._id) {
-    User.findByIdAndUpdate(req.user._id, { name, about })
+    User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(INCORRECT_DATE)) {
@@ -45,7 +46,7 @@ module.exports.updateUser = (req, res) => {
         }
       });
   } else {
-    res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' });
+    res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
@@ -53,7 +54,7 @@ module.exports.changeAvatar = (req, res) => {
   const { avatar } = req.body;
 
   if (req.user._id) {
-    User.findByIdAndUpdate(req.user._id, { avatar }, { new: 'true' })
+    User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
       .then((user) => res.status(200).send(user))
       .catch(() => {
         if (res.status(INCORRECT_DATE)) {

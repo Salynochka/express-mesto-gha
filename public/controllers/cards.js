@@ -25,6 +25,7 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       Card.findById(card._id)
+        .orFail()
         .populate('owner')
         .then((data) => res.status(200).send(data))
         .catch(() => {
@@ -34,6 +35,42 @@ module.exports.createCard = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATE)) {
         res.send({ message: 'Произошла ошибка' });
+      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+    });
+};
+
+module.exports.deleteCard = (req, res) => {
+  Card.findByIdAndRemove(req.params.cardId)
+    .orFail()
+    .then((card) => {
+      if (!card) {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
+      res.status(200).send();
+    })
+    .catch(() => res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' }));
+};
+
+module.exports.addLike = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { new: true },
+  )
+    .orFail()
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      if (!card) {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
+      res.status(200).send(card);
+    })
+    .catch(() => {
+      if (res.status(INCORRECT_DATE)) {
+        res.send({ message: 'Произошла ошибка' });
+        return;
       }
       if (res.status(ERROR_CODE)) {
         res.send({ message: 'На сервере произошла ошибка' });
@@ -41,72 +78,30 @@ module.exports.createCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  if (req.params.userId.length === 24) {
-    Card.findByIdAndRemove(req.params.cardId)
-      .then((card) => {
-        if (!card) {
-          res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-          return;
-        }
-        res.status(200).send();
-      })
-      .catch(() => res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' }));
-  }
-};
-
-module.exports.addLike = (req, res) => {
-  if (req.params.cardId.length === 24) {
-    Card.findByIdAndUpdate(
-      req.params.cardId,
-      { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-      { new: true },
-    )
-      .populate(['owner', 'likes'])
-      .then((card) => {
-        if (!card) {
-          res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-          return;
-        }
-        res.status(200).send(card);
-      })
-      .catch(() => {
-        if (res.status(INCORRECT_DATE)) {
-          res.send({ message: 'Произошла ошибка' });
-          return;
-        }
-        if (res.status(ERROR_CODE)) {
-          res.send({ message: 'На сервере произошла ошибка' });
-        }
-      });
-  }
-};
-
 module.exports.deleteLike = (req, res) => {
-  if (req.params.cardId.length === 24) {
-    Card.findByIdAndUpdate(
-      req.params.cardId,
-      { $pull: { likes: req.user._id } }, // убрать _id из массива
-      { new: true },
-    )
-      .populate(['owner', 'likes'])
-      .then((card) => {
-        if (!card) {
-          res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-          return;
-        }
-        res.status(200).send(card);
-      })
-      .catch(() => {
-        if (res.status(INCORRECT_DATE)) {
-          res.send({ message: 'Произошла ошибка' });
-          return;
-        }
-        if (res.status(ERROR_CODE)) {
-          res.send({ message: 'На сервере произошла ошибка' });
-        }
-      });
-  }
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { new: true },
+  )
+    .orFail()
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      if (!card) {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
+      res.status(200).send(card);
+    })
+    .catch(() => {
+      if (res.status(INCORRECT_DATE)) {
+        res.send({ message: 'Произошла ошибка' });
+        return;
+      }
+      if (res.status(ERROR_CODE)) {
+        res.send({ message: 'На сервере произошла ошибка' });
+      }
+    });
 };
 
 /* class ValidationError extends Error {
