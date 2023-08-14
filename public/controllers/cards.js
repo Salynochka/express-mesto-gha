@@ -43,8 +43,8 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      if (card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+      if (!card) {
+        res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' });
         return;
       }
       res.status(200).send();
