@@ -19,14 +19,15 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserId = (req, res) => {
-  User.findById(req.params.userId)
-    .orFail()
+  const { userId } = req.params;
+
+  User.findById(userId)
     .then((user) => {
       if (!user) {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-        return;
+      } else {
+        res.status(200).send(user);
       }
-      res.status(200).send(user);
     })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
