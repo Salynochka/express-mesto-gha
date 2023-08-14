@@ -23,7 +23,7 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(200).send(card)) /* {
+    .then((card) => res.send(card)) /* {
        Card.findById(card._id)
         .orFail()
         .populate('owner')
@@ -60,13 +60,13 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => { res.status(200).send(card); })
-    /*  if (!card) {
+    .then((card) => {
+      if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
-
-    }) */
+      res.status(200).send(card);
+    })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
@@ -84,13 +84,13 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((card) => { res.status(200).send(card); })
-  /* if (!card) {
+    .then((card) => {
+      if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
-
-    }) */
+      res.status(200).send(card);
+    })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
