@@ -38,7 +38,7 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  if (req.params._id.length === 24) {
+  if (req.params.userId.length === 24) {
     Card.findByIdAndRemove(req.params.cardId)
       .then((card) => {
         if (!card) {
@@ -48,11 +48,13 @@ module.exports.deleteCard = (req, res) => {
         res.status(200).send();
       })
       .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+  } else {
+    res.status(400).send({ message: 'Произошла ошибка' });
   }
 };
 
 module.exports.addLike = (req, res) => {
-  if (req.params._id.length === 24) {
+  if (req.params.userId.length === 24) {
     Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -68,17 +70,15 @@ module.exports.addLike = (req, res) => {
       .catch(() => {
         if (res.status(400)) {
           res.send({ message: 'Произошла ошибка' });
-          return;
-        }
-        if (res.status(500)) {
-          res.send({ message: 'На сервере произошла ошибка' });
         }
       });
+  } else {
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
 module.exports.deleteLike = (req, res) => {
-  if (req.params._id.length === 24) {
+  if (req.params.userId.length === 24) {
     Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -94,12 +94,10 @@ module.exports.deleteLike = (req, res) => {
       .catch(() => {
         if (res.status(400)) {
           res.send({ message: 'Произошла ошибка' });
-          return;
-        }
-        if (res.status(500)) {
-          res.send({ message: 'На сервере произошла ошибка' });
         }
       });
+  } else {
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
