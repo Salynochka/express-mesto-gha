@@ -42,14 +42,16 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
-    .then((card) => {
-      if (!card._id) {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+    .then((card) => {res.status(200).send(card)})
+    .catch(() => {
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
-      res.status(200).send();
-    })
-    .catch(() => res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' }));
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.addLike = (req, res) => {
