@@ -28,7 +28,7 @@ module.exports.getUserId = (req, res) => {
       }
       res.status(200).send(user);
     })
-    .catch(() => res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' }));
 };
 
 module.exports.updateUser = (req, res) => {

@@ -43,13 +43,13 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      if (!card) {
+      if (card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
       res.status(200).send();
     })
-    .catch(() => res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' }));
 };
 
 module.exports.addLike = (req, res) => {
@@ -87,7 +87,7 @@ module.exports.deleteLike = (req, res) => {
     .orFail()
     .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
+      if (card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
