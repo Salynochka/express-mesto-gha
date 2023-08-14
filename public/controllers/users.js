@@ -1,6 +1,6 @@
 const User = require('../models/user');
 
-const INCORRECT_DATE = 400;
+const INCORRECT_DATA = 400;
 const NOT_FOUND_ERROR = 404;
 const ERROR_CODE = 500;
 
@@ -8,7 +8,7 @@ module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
     .catch(() => {
-      if (res.status(INCORRECT_DATE)) {
+      if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
         return;
       }
@@ -23,12 +23,18 @@ module.exports.getUserId = (req, res) => {
     .orFail()
     .then((user) => {
       if (!user) {
-        res.status(INCORRECT_DATE).send({ message: 'Произошла ошибка' });
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
         return;
       }
       res.status(200).send(user);
     })
-    .catch(() => res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' }));
+    .catch(() => {
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
+      } else {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+      }
+    });
 };
 
 module.exports.updateUser = (req, res) => {
@@ -39,7 +45,7 @@ module.exports.updateUser = (req, res) => {
       .orFail()
       .then((user) => res.status(200).send(user))
       .catch(() => {
-        if (res.status(INCORRECT_DATE)) {
+        if (res.status(INCORRECT_DATA)) {
           res.send({ message: 'Произошла ошибка' });
         } else {
           res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
@@ -58,7 +64,7 @@ module.exports.changeAvatar = (req, res) => {
       .orFail()
       .then((user) => res.status(200).send(user))
       .catch(() => {
-        if (res.status(INCORRECT_DATE)) {
+        if (res.status(INCORRECT_DATA)) {
           res.send({ message: 'Произошла ошибка' });
         }
         if (res.status(NOT_FOUND_ERROR)) {
@@ -79,7 +85,7 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     // если данные не записались, вернём ошибку
     .catch((err) => {
-      if (res.status(INCORRECT_DATE)) {
+      if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
         return;
       }
