@@ -23,11 +23,10 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .orFail()
-    .populate('owner')
-    .then((card) => res.status(201).send(card)) /* {
+    .then((card) => res.status(200).send(card)) /* {
        Card.findById(card._id)
-
+        .orFail()
+        .populate('owner')
         .then((data) => res.status(200).send(data))
         .catch(() => {
           res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
@@ -69,10 +68,12 @@ module.exports.addLike = (req, res) => {
       res.status(200).send(card);
     })
     .catch(() => {
-      if (res.status(NOT_FOUND_ERROR)) {
-        res.send({ message: 'Запрашиваемая карточка не найдена' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
+        return;
+      }
+      if (res.status(ERROR_CODE)) {
+        res.send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -95,8 +96,10 @@ module.exports.deleteLike = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        return;
+      }
+      if (res.status(ERROR_CODE)) {
+        res.send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
