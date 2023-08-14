@@ -22,7 +22,7 @@ module.exports.getUserId = (req, res) => {
   User.findById(req.params.userId)
     .orFail()
     .then((user) => {
-      if (!user) {
+      if (!user._id) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
         return;
       }
