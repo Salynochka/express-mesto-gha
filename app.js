@@ -15,18 +15,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 
 const app = express();
 
-/* app.get('/users', (req, res) => {
-  res.send('Получил пользователей');
-});
-
-app.get('/users/1', (req, res) => {
-  res.send('Пользователь 1');
-});
-
-app.post('/users', (req, res) => {
-  res.send('Опубликовал пользователя');
-}); */
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -42,5 +30,7 @@ app.use((req, res, next) => {
 
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);
+
+app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 
 app.listen(PORT);
