@@ -60,13 +60,14 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+    .orFail()
+    .then((like) => { res.status(200).send(like); })
+    /*  if (!card) {
+        res.status().send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
-        res.status(200).send(card);
+        ;
       }
-    })
+    }) */
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -74,6 +75,10 @@ module.exports.addLike = (req, res) => {
       }
       if (res.status(ERROR_CODE)) {
         res.send({ message: 'На сервере произошла ошибка' });
+        return;
+      }
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
       }
     });
 };
@@ -84,6 +89,7 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
+    .orFail()
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
