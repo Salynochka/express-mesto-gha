@@ -59,24 +59,18 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .orFail()
-    .then((card) => res.status(200).send(card))
-    /*  if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-      } else {
-        res.status(200).send(card);
+    .then((card) => {
+      if (!card) {
+        return res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-    }) */
+      return res.status(200).send(card);
+    })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(NOT_FOUND_ERROR)) {
+      } else if (res.status(NOT_FOUND_ERROR)) {
         res.send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      if (res.status(ERROR_CODE)) {
+      } else {
         res.send({ message: 'На сервере произошла ошибка' });
       }
     });
@@ -88,24 +82,18 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .orFail()
-    .then((card) => { res.status(200).send(card); })
-    /*  if (!card) {
+    .then((card) => {
+      if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-      } else {
-
       }
-    }) */
+      return res.status(200).send(card);
+    })
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(NOT_FOUND_ERROR)) {
+      } else if (res.status(NOT_FOUND_ERROR)) {
         res.send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      if (res.status(ERROR_CODE)) {
+      } else {
         res.send({ message: 'На сервере произошла ошибка' });
       }
     });
