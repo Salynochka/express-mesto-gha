@@ -29,9 +29,9 @@ module.exports.getUserId = (req, res) => {
       }
       return ;
     }) */
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+    .catch(() => {
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
       }
       if (res.status(NOT_FOUND_ERROR)) {
         res.send({ message: 'Запрашиваемый пользователь не найден' });

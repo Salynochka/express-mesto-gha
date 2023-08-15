@@ -54,22 +54,24 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.addLike = (req, res) => {
+  const { cardId } = req.params;
+
   Card.findByIdAndUpdate(
-    req.params.cardId,
+    cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
     // .orFail()
-    .then((card) => {
-      if (!card) {
+    .then((card) => { res.status(200).send(card); })
+    /*  if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
-        res.status(200).send(card);
+        ;
       }
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+    }) */
+    .catch(() => {
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
         return;
       }
       if (res.status(ERROR_CODE)) {
@@ -85,16 +87,16 @@ module.exports.deleteLike = (req, res) => {
     { new: true },
   )
     .orFail()
-    .then((card) => {
-      if (!card) {
+    .then((card) => { res.status(200).send(card); })
+    /*  if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
-        res.status(200).send(card);
+
       }
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+    }) */
+    .catch(() => {
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
         return;
       }
       if (res.status(ERROR_CODE)) {
