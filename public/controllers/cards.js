@@ -40,7 +40,6 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .orFail()
     .then((card) => {
       if (!card) {
         return res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
