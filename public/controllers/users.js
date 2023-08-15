@@ -22,6 +22,7 @@ module.exports.getUserId = (req, res) => {
   const { id } = req.params;
 
   return User.findById(id)
+    .orFail()
     .then((user) => {
       if (!user) {
         return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
