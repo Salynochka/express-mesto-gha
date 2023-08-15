@@ -54,10 +54,8 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.addLike = (req, res) => {
-  const { cardId } = req.params;
-
   Card.findByIdAndUpdate(
-    cardId,
+    req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
@@ -68,8 +66,12 @@ module.exports.addLike = (req, res) => {
       } else {
         ;
       }
-    }) */
+    } */
     .catch(() => {
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
         return;
@@ -95,6 +97,10 @@ module.exports.deleteLike = (req, res) => {
       }
     }) */
     .catch(() => {
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
+        return;
+      }
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
         return;
