@@ -19,9 +19,9 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserId = (req, res) => {
-  const { id } = req.params;
+  const { userId } = req.params;
 
-  return User.findById(id)
+  User.findById(userId)
     .orFail()
     .then((user) => { res.status(200).send(user); })
     /*  if (!user) {
