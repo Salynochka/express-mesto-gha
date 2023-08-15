@@ -43,13 +43,13 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => { res.status(200).send(card); })
-    .catch(() => {
-      if (res.status(NOT_FOUND_ERROR)) {
-        res.send({ message: 'Запрашиваемая карточка не найдена' });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
         return;
       }
-      if (res.status(INCORRECT_DATA)) {
-        res.send({ message: 'Произошла ошибка' });
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
       }
     });
 };
@@ -67,9 +67,9 @@ module.exports.addLike = (req, res) => {
         res.status(200).send(card);
       }
     })
-    .catch(() => {
-      if (res.status(INCORRECT_DATA)) {
-        res.send({ message: 'Произошла ошибка' });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
         return;
       }
       if (res.status(ERROR_CODE)) {
@@ -91,9 +91,9 @@ module.exports.deleteLike = (req, res) => {
         res.status(200).send(card);
       }
     })
-    .catch(() => {
-      if (res.status(INCORRECT_DATA)) {
-        res.send({ message: 'Произошла ошибка' });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
         return;
       }
       if (res.status(ERROR_CODE)) {
