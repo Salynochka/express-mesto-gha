@@ -84,7 +84,7 @@ module.exports.deleteLike = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+        return res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       }
       return res.status(200).send(card);
     })
