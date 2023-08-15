@@ -21,10 +21,9 @@ module.exports.getCards = (req, res) => {
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
 
-  Card.create({ name, link, owner })
-    .then((card) => res.status(201).send(card)) /* {
+  Card.create({ name, link, owner: req.user._id })
+    .then((card) => res.status(200).send(card)) /* {
        Card.findById(card._id)
         .orFail()
         .populate('owner')
@@ -61,17 +60,13 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => { res.status(200).send(card); })
-    /*  if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-      } else {
-        ;
+    .then((card) => {
+      if (!card) {
+        return res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-    }) */
+      return res.status(200).send(card);
+    })
     .catch(() => {
-      if (res.status(NOT_FOUND_ERROR)) {
-        res.send({ message: 'Запрашиваемая карточка не найдена' });
-      }
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
         return;
