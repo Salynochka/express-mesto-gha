@@ -22,7 +22,7 @@ module.exports.getUserId = (req, res) => {
   const { userId } = req.params;
 
   User.findById(userId)
-    .orFail(res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' }))
+    .orFail()
     .then((user) => { res.status(200).send(user); })
     /*  if (!user) {
         return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -32,8 +32,10 @@ module.exports.getUserId = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
+      } else if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемый пользователь не найден' });
       } else {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        res.send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
