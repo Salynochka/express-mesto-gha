@@ -32,9 +32,9 @@ module.exports.createCard = (req, res) => {
           res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
         });
     }) */
-    .catch(() => {
-      if (res.status(INCORRECT_DATA)) {
-        res.send({ message: 'Произошла ошибка' });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
     });
 };

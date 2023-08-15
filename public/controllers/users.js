@@ -23,17 +23,18 @@ module.exports.getUserId = (req, res) => {
 
   return User.findById(id)
     .orFail()
-    .then((user) => {
-      if (!user) {
+    .then((user) => { res.status(200).send(user); })
+    /*  if (!user) {
         return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       }
-      return res.status(200).send(user);
-    })
+      return ;
+    }) */
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+      }
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемый пользователь не найден' });
       }
     });
 };
@@ -48,8 +49,9 @@ module.exports.updateUser = (req, res) => {
       .catch(() => {
         if (res.status(INCORRECT_DATA)) {
           res.send({ message: 'Произошла ошибка' });
-        } else {
-          res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+        if (res.status(NOT_FOUND_ERROR)) {
+          res.send({ message: 'Запрашиваемый пользователь не найден' });
         }
       });
   } else {
