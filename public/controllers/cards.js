@@ -47,14 +47,10 @@ module.exports.deleteCard = (req, res) => {
       }
       return res.status(200).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-        return;
-      }
-      if (res.status(ERROR_CODE)) {
-        res.send({ message: 'На сервере произошла ошибка' });
-      }
+    .catch(() => {
+      if (res.status(INCORRECT_DATA)) {
+        res.send({ message: 'Произошла ошибка' });
+      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
     });
 };
 
