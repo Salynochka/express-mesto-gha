@@ -60,7 +60,7 @@ module.exports.addLike = (req, res) => {
     { new: true },
   )
     .orFail()
-    .then((card) => { res.status(200).send(card); })
+    .then((card) => res.status(200).send(card))
     /*  if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
@@ -70,6 +70,10 @@ module.exports.addLike = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
+        return;
+      }
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
       if (res.status(ERROR_CODE)) {
@@ -95,6 +99,10 @@ module.exports.deleteLike = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
+        return;
+      }
+      if (res.status(NOT_FOUND_ERROR)) {
+        res.send({ message: 'Запрашиваемая карточка не найдена' });
         return;
       }
       if (res.status(ERROR_CODE)) {
