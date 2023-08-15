@@ -6,7 +6,7 @@ const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .populate(['owner', 'likes'])
+    // .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
