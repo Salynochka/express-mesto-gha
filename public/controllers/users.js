@@ -24,7 +24,7 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        return res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
       }
       return res.status(200).send(user);
     })
