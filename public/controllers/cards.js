@@ -25,8 +25,7 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(200).send(card)) /* {
        Card.findById(card._id)
-        .orFail()
-        .populate('owner')
+
         .then((data) => res.status(200).send(data))
         .catch(() => {
           res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
@@ -60,14 +59,14 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .orFail()
-    .then((like) => { res.status(200).send(like); })
-    /*  if (!card) {
-        res.status().send({ message: 'Запрашиваемая карточка не найдена' });
+    // .orFail()
+    .then((card) => {
+      if (!card) {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
-        ;
+        res.status(200).send(card);
       }
-    }) */
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -75,10 +74,6 @@ module.exports.addLike = (req, res) => {
       }
       if (res.status(ERROR_CODE)) {
         res.send({ message: 'На сервере произошла ошибка' });
-        return;
-      }
-      if (res.status(NOT_FOUND_ERROR)) {
-        res.send({ message: 'Запрашиваемая карточка не найдена' });
       }
     });
 };
