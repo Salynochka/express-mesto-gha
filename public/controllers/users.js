@@ -32,9 +32,8 @@ module.exports.getUserId = (req, res) => {
     .catch(() => {
       if (res.status(INCORRECT_DATA)) {
         res.send({ message: 'Произошла ошибка' });
-      }
-      if (res.status(NOT_FOUND_ERROR)) {
-        res.send({ message: 'Запрашиваемый пользователь не найден' });
+      } else {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
       }
     });
 };
