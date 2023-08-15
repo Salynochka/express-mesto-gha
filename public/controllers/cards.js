@@ -40,7 +40,7 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .orFail()
+    .orFail(res.status(NOT_FOUND_ERROR).send({ message: 'Произошла ошибка' }))
     .then((card) => { res.status(200).send(card); })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -59,7 +59,7 @@ module.exports.addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .orFail()
+    .orFail(res.status(NOT_FOUND_ERROR).send({ message: 'Произошла ошибка' }))
     .then((card) => { res.status(200).send(card); })
     /*  if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
@@ -84,7 +84,7 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .orFail()
+    .orFail(res.status(NOT_FOUND_ERROR).send({ message: 'Произошла ошибка' }))
     .then((card) => { res.status(200).send(card); })
     /*  if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
