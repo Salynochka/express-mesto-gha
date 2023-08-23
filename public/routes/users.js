@@ -31,7 +31,7 @@ const newLocal = /https?:\/\/\w{3}?\.\S[0,]*/;
 const regex = newLocal;
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.str.match(regex),
+    // avatar: Joi.str.match(regex),
   }),
 }), changeAvatar);
 
