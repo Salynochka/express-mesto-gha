@@ -24,16 +24,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-app.use(auth);
+app.use(auth, () => {});
 
-app.use('/cards', validateCard, (req, res) => {
+app.use('/cards', auth, validateCard, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerCards;
 });
 
-app.use('/users', validateUser, (req, res) => {
+app.use('/users', auth, validateUser, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
