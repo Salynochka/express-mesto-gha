@@ -1,14 +1,10 @@
 const { celebrate, Joi } = require('../../node_modules/celebrate');
 
-const newLocal = /https?:\/\/\w{3}?\.\S[0,]*/;
-const regex = newLocal;
-
 module.exports.validateUser = celebrate({
   body: Joi.object().keys({
-    _id: Joi.string(),
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2),
-    avatar: regex.test(Joi.str),
+    avatar: Joi.string().pattern(/https?:\/\/\w{3}?\.\S[0,]*/),
     email: Joi.string().required().min(2),
     password: Joi.string().required().min(2),
   }),

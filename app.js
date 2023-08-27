@@ -1,3 +1,4 @@
+const router = require('express').Router();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -21,30 +22,30 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+router.post('/signin', validateUser, login);
+router.post('/signup', validateUser, createUser);
 
-app.use(auth, () => {});
+router.use(auth, validateCard);
 
-app.use('/cards', validateCard, (req, res) => {
+router.use('/cards', (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerCards;
 });
 
-app.use('/users', validateUser, (req, res) => {
+router.use('/users', (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerUsers;
 });
 
-app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
+router.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 
-app.use(errors());
+router.use(errors());
 
-app.use((err, req, res) => {
+router.use((err, req, res) => {
   res.send({ message: err.message }); // это обработчик ошибки
 });
 
