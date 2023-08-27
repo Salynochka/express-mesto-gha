@@ -6,6 +6,7 @@ const routerCards = require('./public/routes/cards');
 const routerUsers = require('./public/routes/users');
 const { login, createUser } = require('./public/controllers/users');
 const auth = require('./public/middlewares/auth');
+const { validateUser, validateCard } = require('./public/middlewares/validate');
 
 const { PORT = 3000 } = process.env;
 
@@ -23,19 +24,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-app.use(auth, (req, res) => {
+app.use(auth, () => {});
 
-});
-
-app.use('/cards', (req, res) => {
+app.use('/cards', validateCard, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerCards;
 });
 
-app.use('/users', (req, res) => {
-  if (auth) {
+app.use('/users', validateUser, (req, res) => {
+  if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerUsers;
