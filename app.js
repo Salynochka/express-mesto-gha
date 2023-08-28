@@ -24,14 +24,14 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.post('/signup', validateUser, createUser);
 app.post('/signin', validateLogin, login);
 
-app.use(auth, () => {});
+// app.use(auth, () => {});
 
-/* app.use('/cards', (req, res) => {
+app.use(auth, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
-  return routerCards;
-}); */
+  return routerUsers;
+});
 
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);
