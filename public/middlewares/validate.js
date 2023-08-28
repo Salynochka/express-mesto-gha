@@ -9,8 +9,8 @@ module.exports.validateLogin = celebrate({
 
 module.exports.validateUser = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2),
+    name: Joi.string().min(2).max(30), // ИЗМЕНЕНО
+    about: Joi.string().min(2), // ИЗМЕНЕНО
     avatar: Joi.string().pattern(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
@@ -45,6 +45,6 @@ module.exports.validateCard = celebrate({
 
 module.exports.validateCardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().length(24),
+    cardId: Joi.string().required(), // ИЗМЕНЕНО
   }),
 });
