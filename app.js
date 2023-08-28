@@ -24,17 +24,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.post('/signup', validateUser, createUser);
 app.post('/signin', validateLogin, login);
 
-// app.use(auth, () => {});
-
-app.use(auth, (req, res) => {
-  if (!auth) {
-    res.status(401).send({ message: 'Необходимо авторизоваться' });
-  }
-  return routerUsers;
-});
-
-app.use('/cards', routerCards);
-app.use('/users', routerUsers);
+app.use(auth, routerCards);
+app.use(auth, routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 

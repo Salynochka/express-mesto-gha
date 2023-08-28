@@ -26,9 +26,9 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена'); // ИЗМЕНЕНО
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
-      return res.send({}); // ИЗМЕНЕНО
+      return res.send(); // ИЗМЕНЕНО
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -47,7 +47,7 @@ module.exports.addLike = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена'); // ИЗМЕНЕНО
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
       return res.send(card);
     })
@@ -68,7 +68,7 @@ module.exports.deleteLike = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена'); // ИЗМЕНЕНО
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
       return res.send(card);
     })
