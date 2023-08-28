@@ -28,6 +28,7 @@ app.use(auth, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
+  res.send({ message: 'Всё в порядке' });
 });
 
 app.use('/cards', validateCard, routerCards);
