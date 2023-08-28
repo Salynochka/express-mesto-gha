@@ -14,9 +14,9 @@ const randomString = crypto
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
+  return User.findOne({ email, password })
+    .then((userId) => {
+      const token = jwt.sign({ _id: userId }, randomString, { expiresIn: '7d' });
       res.send({ token });
       res
         .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
@@ -61,10 +61,12 @@ module.exports.login = (req, res) => {
 }; */
 
 module.exports.getCurrentUser = (req, res) => {
+  const { userId } = req.params; // используем req.user
+
   User.findOne({
     name: req.body.name,
     about: req.body.about,
-    _id: req.user._id, // используем req.user
+    _id: userId,
   })
     .then((user) => {
       if (user) {
@@ -78,7 +80,7 @@ module.exports.getCurrentUser = (req, res) => {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send({ users }))
+    .then((users) => res.send(users))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
@@ -105,10 +107,10 @@ module.exports.getUserId = (req, res) => {
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+  // ИЗМЕНЕНО
+  User.findByIdAndUpdate(req.params.userId, { name, about }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.send(user))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -122,7 +124,7 @@ module.exports.updateUser = (req, res, next) => {
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.params.userId, { avatar }, { new: true, runValidators: true })
     .orFail()
     .then((user) => res.send({ user }))
     .catch((err) => {
@@ -144,10 +146,20 @@ module.exports.createUser = (req, res) => {
       email: req.body.email,
       password: hash,
     }))
-    .then((user) => res.status(201).send(user)) // возвращаем записанные в базу данные пользователю
+    .then((user) => {
+      res.status(201)
+        .send({
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        });
+    }) // ИЗМЕНЕНО
     .catch((err) => { // если данные не записались, вернём ошибку
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else { res.status(409).send({ message: 'На сервере произошла ошибка' }); }
+      } else {
+        res.status(401).send({ message: err.message }); // ИЗМЕНЕНО
+      }
     });
 };

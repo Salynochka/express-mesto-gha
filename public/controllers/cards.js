@@ -13,7 +13,7 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.createCard = (req, res) => {
-  Card.create({ name: req.body.name, link: req.body.link, owner: req.user._id })
+  Card.create({ name: req.body.name, link: req.body.link, owner: req.params.userId }) // ИЗМЕНЕНО
     .then((card) => res.send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
