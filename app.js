@@ -40,9 +40,8 @@ app.use('/cards', (req, res) => {
   return routerCards;
 });
 
-app.use('/cards', validateCard, routerCards);
-
-app.use('/users', validateUser, routerUsers);
+// app.use('/cards', routerCards);
+app.use('/users', routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 

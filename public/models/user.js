@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// const validator = require('../../node_modules/validator');
+const validator = require('../../node_modules/validator');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,17 +17,23 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (url) => validator.isURL(url),
+      message: 'Введите URL',
+    },
   },
   email: {
     type: String,
-    // validate: validator.isEmail()(true),
+    validate: {
+      validator: (email) => validator.isEmail(email),
+      message: 'Введите корректный email',
+    },
     unique: true,
     required: true,
   },
   password: {
     type: String,
     required: true,
-    // validate: validator.isPassportNumber,
     select: false,
   },
 });
