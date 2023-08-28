@@ -35,8 +35,7 @@ app.use(auth, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
-  return res.send({ message: 'Всё в порядке' });
-}, routerUsers);
+});
 
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);
