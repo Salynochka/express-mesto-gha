@@ -43,7 +43,7 @@ module.exports.login = (req, res) => {
     });
 };
 
-module.exports.getCurrentUser = (req, res, next) => {
+module.exports.getCurrentUser = (req, res) => {
   User.findOne({
     name: req.body.name,
     about: req.body.about,
@@ -52,17 +52,15 @@ module.exports.getCurrentUser = (req, res, next) => {
     .then((user) => res.send({ user }))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-    })
-    .catch(next);
+    });
 };
 
-module.exports.getUsers = (req, res, next) => {
+module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-    })
-    .catch(next);
+    });
 };
 
 module.exports.getUserId = (req, res) => {

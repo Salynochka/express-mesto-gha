@@ -22,8 +22,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('connected to db');
 });
 
-app.post('/signin', validateUser, login);
 app.post('/signup', validateUser, createUser);
+app.post('/signin', validateUser, login);
 
 app.use(auth, (req, res) => {
   if (!auth) {
