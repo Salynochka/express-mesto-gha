@@ -1,4 +1,3 @@
-// const router = require('express').Router();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -7,7 +6,7 @@ const routerCards = require('./public/routes/cards');
 const routerUsers = require('./public/routes/users');
 const { login, createUser } = require('./public/controllers/users');
 const auth = require('./public/middlewares/auth');
-const { validateLogin, validateNewUser } = require('./public/middlewares/validate');
+const { validateUser, validateLogin } = require('./public/middlewares/validate');
 
 const { PORT = 3000 } = process.env;
 
@@ -22,8 +21,15 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('connected to db');
 });
 
-app.post('/signup', validateNewUser, createUser);
-app.post('/signin', validateLogin, login);
+// app.post('/signup', validateUser, createUser);
+app.post('/signup', () => {
+  validateUser();
+  createUser();
+});
+app.post('/signin', () => {
+  validateLogin();
+  login();
+});
 
 app.use(auth, (req, res) => {
   if (!auth) {
@@ -33,7 +39,6 @@ app.use(auth, (req, res) => {
 }, routerUsers);
 
 app.use('/cards', routerCards);
-
 app.use('/users', routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
