@@ -4,16 +4,17 @@ const NotFoundError = require('../errors/not-found-error');
 const INCORRECT_DATA = 400;
 const ERROR_CODE = 500;
 
-module.exports.getCards = (req, res) => {
-  Card.find({})
+module.exports.getCards = (req, res, next) => {
+  Card.find()
     .then((cards) => res.send(cards)) // ИСПРАВЛЕНО
-    .catch(() => {
-      res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-    });
+    .catch(next); // ИСПРАВЛЕНО
 };
 
 module.exports.createCard = (req, res) => {
-  Card.create({ name: req.body.name, link: req.body.link }) // ИЗМЕНЕНО
+  const { name, link } = req.body;
+  const { owner } = req.params;
+
+  Card.create({ name, link, owner }) // ИЗМЕНЕНО
     .then((card) => res.send({
       name: card.name,
       link: card.link,
@@ -47,14 +48,14 @@ module.exports.deleteCard = (req, res) => {
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.params.userId } }, // ИЗМЕНЕНО
+    { $addToSet: { likes: req.params.userId } },
     { new: true },
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
-      res.send(card);
+      return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -74,10 +75,10 @@ module.exports.deleteLike = (req, res) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
+      if (card) {
+        res.send(card);
       }
-      res.send(card);
+      return NotFoundError('Запрашиваемая карточка не найдена');
     })
     .catch((err) => {
       if (err.name === 'CastError') {

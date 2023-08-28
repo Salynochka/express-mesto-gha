@@ -61,7 +61,7 @@ module.exports.login = (req, res) => {
 }; */
 
 module.exports.getCurrentUser = (req, res) => {
-  const { userId } = req.user; // используем req.user
+  const { userId } = req.params; // ИЗМЕНЕНО
 
   User.findOne({ userId }) // ИЗМЕНЕНО
     .then((user) => {
@@ -92,7 +92,7 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        NotFoundError('Запрашиваемый пользователь не найден'); // ИЗМЕНЕНО
+        throw new NotFoundError('Запрашиваемый пользователь не найден'); // ИЗМЕНЕНО
       }
       res.send({ user }); // ИЗМЕНЕНО
     })
@@ -116,7 +116,6 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => res.send({
       name: user.name,
       about: user.about,
-      _id: user._id,
     })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -136,7 +135,6 @@ module.exports.changeAvatar = (req, res, next) => {
     // .orFail()
     .then((user) => res.send({
       avatar: user.avatar,
-      _id: user._id,
     })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
