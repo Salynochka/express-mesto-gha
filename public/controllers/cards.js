@@ -6,7 +6,7 @@ const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.send({ cards }))
+    .then((cards) => res.send(cards)) // ИСПРАВЛЕНО
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
@@ -14,7 +14,11 @@ module.exports.getCards = (req, res) => {
 
 module.exports.createCard = (req, res) => {
   Card.create({ name: req.body.name, link: req.body.link, owner: req.params.userId }) // ИЗМЕНЕНО
-    .then((card) => res.send({ card }))
+    .then((card) => res.send({
+      name: card.name,
+      link: card.link,
+      _id: card._id,
+    })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -42,17 +46,19 @@ module.exports.deleteCard = (req, res) => {
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { $addToSet: { likes: req.params.userId } }, // ИЗМЕНЕНО
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
+      if (!card._id) {
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
-      return res.send(card);
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
@@ -68,9 +74,9 @@ module.exports.deleteLike = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
-      return res.send(card);
+      res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {

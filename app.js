@@ -24,9 +24,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
 
-app.use(auth, (err, res) => {
-  res.status(401).send({ message: err.message }); // ИЗМЕНЕНО
-});
+app.use(auth, () => {});
 
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);

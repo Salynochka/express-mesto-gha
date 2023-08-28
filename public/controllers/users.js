@@ -61,17 +61,17 @@ module.exports.login = (req, res) => {
 }; */
 
 module.exports.getCurrentUser = (req, res) => {
-  const { userId } = req.params; // используем req.user
+  const { userId } = req.user; // используем req.user
 
-  User.findOne({
-    name: req.body.name,
-    about: req.body.about,
-    _id: userId,
-  })
+  User.findOne({ userId }) // ИЗМЕНЕНО
     .then((user) => {
       if (user) {
-        res.send({ user });
-      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        return res.send({
+          name: req.body.name,
+          about: req.body.about,
+          _id: userId,
+        });
+      } return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }); // ИЗМЕНЕНО
     })
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
@@ -99,6 +99,8 @@ module.exports.getUserId = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else if (err.name === 'DocumentNotFoundError') {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       }
@@ -107,10 +109,15 @@ module.exports.getUserId = (req, res) => {
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  // ИЗМЕНЕНО
-  User.findByIdAndUpdate(req.params.userId, { name, about }, { new: true, runValidators: true })
+  const { userId } = req.params;
+
+  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      _id: user._id,
+    })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -123,10 +130,14 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
+  const { userId } = req.params;
 
-  User.findByIdAndUpdate(req.params.userId, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.send({ user }))
+    .then((user) => res.send({
+      avatar: user.avatar,
+      _id: user._id,
+    })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -154,10 +165,12 @@ module.exports.createUser = (req, res) => {
           avatar: user.avatar,
           email: user.email,
         });
-    }) // ИЗМЕНЕНО
+    })
     .catch((err) => { // если данные не записались, вернём ошибку
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else if (err.code === 11000) {
+        res.status(409).send({ message: 'Пользователь с таким email уже существует' });
       } else {
         res.status(401).send({ message: err.message }); // ИЗМЕНЕНО
       }
