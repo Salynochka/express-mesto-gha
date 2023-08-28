@@ -31,14 +31,18 @@ app.post('/signin', () => {
   login();
 });
 
-app.use(auth, (req, res) => {
+app.use(auth, () => {});
+
+app.use('/cards', (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
+  return routerCards;
 });
 
-app.use('/cards', routerCards);
-app.use('/users', routerUsers);
+app.use('/cards', validateCard, routerCards);
+
+app.use('/users', validateUser, routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 
