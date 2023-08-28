@@ -22,13 +22,11 @@ module.exports.validateCard = celebrate({
     link: Joi.string().required(),
     _id: Joi.string().required().length(24),
   }),
+});
+
+module.exports.validateCardId = celebrate({
   params: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
     _id: Joi.string().required().length(24),
   }),
 });
-/*
-module.exports.validateCardId = celebrate({
-  params: Joi.object().keys({
-    _id: Joi.string().required().length(24),
-  }),
-}); */
