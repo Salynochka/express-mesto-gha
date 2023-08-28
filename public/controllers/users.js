@@ -14,24 +14,7 @@ const randomString = crypto
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  return User.findOne({ email, password })
-    .then((userId) => {
-      const token = jwt.sign({ _id: userId }, randomString, { expiresIn: '7d' });
-      res.send({ token });
-      res
-        .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-        });
-      res.send({ token });
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-      // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-    });
-};
-
-/* User.findOne({ email }).select('+password')
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
@@ -53,6 +36,23 @@ module.exports.login = (req, res) => {
           httpOnly: true,
         })
         .end();
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+      // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+    });
+};
+
+/*  return User.findOne({ email, password })
+    .then((userId) => {
+      const token = jwt.sign({ _id: userId }, randomString, { expiresIn: '7d' });
+      res.send({ token });
+      res
+        .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        });
+      res.send({ token });
     })
     .catch((err) => {
       res.status(401).send({ message: err.message });
