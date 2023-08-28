@@ -66,12 +66,12 @@ module.exports.getCurrentUser = (req, res) => {
   User.findOne({ userId }) // ИЗМЕНЕНО
     .then((user) => {
       if (user) {
-        return res.send({
+        res.send({ // ИЗМЕНЕНО
           name: req.body.name,
           about: req.body.about,
           _id: userId,
         });
-      } return res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }); // ИЗМЕНЕНО
+      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }); // ИЗМЕНЕНО
     })
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
@@ -92,9 +92,9 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return NotFoundError('Запрашиваемый пользователь не найден');
+        NotFoundError('Запрашиваемый пользователь не найден'); // ИЗМЕНЕНО
       }
-      return res.send({ user });
+      res.send({ user }); // ИЗМЕНЕНО
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -112,7 +112,7 @@ module.exports.updateUser = (req, res, next) => {
   const { userId } = req.params;
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
-    .orFail()
+    // .orFail()
     .then((user) => res.send({
       name: user.name,
       about: user.about,
@@ -133,7 +133,7 @@ module.exports.changeAvatar = (req, res, next) => {
   const { userId } = req.params;
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .orFail()
+    // .orFail()
     .then((user) => res.send({
       avatar: user.avatar,
       _id: user._id,

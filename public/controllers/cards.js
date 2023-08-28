@@ -13,11 +13,12 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.createCard = (req, res) => {
-  Card.create({ name: req.body.name, link: req.body.link, owner: req.params.userId }) // ИЗМЕНЕНО
+  Card.create({ name: req.body.name, link: req.body.link }) // ИЗМЕНЕНО
     .then((card) => res.send({
       name: card.name,
       link: card.link,
       _id: card._id,
+      owner: req.params.userId, // ИЗМЕНЕНО
     })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -50,7 +51,7 @@ module.exports.addLike = (req, res) => {
     { new: true },
   )
     .then((card) => {
-      if (!card._id) {
+      if (!card) {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       res.send(card);
@@ -69,7 +70,7 @@ module.exports.addLike = (req, res) => {
 module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.params.userId } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {

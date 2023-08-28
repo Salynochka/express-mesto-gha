@@ -42,7 +42,7 @@ module.exports.validateChangeAvatar = celebrate({
 
 module.exports.validateUserId = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required(), // ИЗМЕНЕНО
+    userId: Joi.string().required().length(24), // ИЗМЕНЕНО
   }),
 });
 
