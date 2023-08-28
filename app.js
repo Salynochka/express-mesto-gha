@@ -21,26 +21,19 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('connected to db');
 });
 
-// app.post('/signup', validateUser, createUser);
-app.post('/signup', () => {
-  validateUser();
-  createUser();
-});
-app.post('/signin', () => {
-  validateLogin();
-  login();
-});
+app.post('/signup', validateUser, createUser);
+app.post('/signin', validateLogin, login);
 
 app.use(auth, () => {});
 
-app.use('/cards', (req, res) => {
+/* app.use('/cards', (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
   return routerCards;
-});
+}); */
 
-// app.use('/cards', routerCards);
+app.use('/cards', routerCards);
 app.use('/users', routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));

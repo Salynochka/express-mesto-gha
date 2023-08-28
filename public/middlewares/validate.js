@@ -7,7 +7,7 @@ module.exports.validateLogin = celebrate({
   }),
 });
 
-module.exports.validateNewUser = celebrate({
+module.exports.validateUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2),
@@ -23,7 +23,7 @@ module.exports.validateUserId = celebrate({
   }),
 });
 
-module.exports.validateUpdateUser = celebrate({
+/* module.exports.validateUpdateUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
@@ -32,9 +32,9 @@ module.exports.validateUpdateUser = celebrate({
 
 module.exports.validateChangeAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().pattern(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
+    avatar: Joi.string().required(),
   }),
-});
+}); */
 
 module.exports.validateCard = celebrate({
   body: Joi.object().keys({

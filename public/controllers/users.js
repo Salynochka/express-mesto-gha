@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const bcrypt = require('../../node_modules/bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('../../node_modules/jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-error');
@@ -14,7 +14,24 @@ const randomString = crypto
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
+      res.send({ token });
+      res
+        .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        });
+      res.send({ token });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+      // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+    });
+};
+
+/* User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
@@ -23,7 +40,7 @@ module.exports.login = (req, res) => {
     })
     .then((matched) => {
       if (!matched) {
-        return Promise.reject(new Error('Неправильные почта или пароль')); // хеши не совпали — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
       }
       return res.send({ message: 'Всё верно!' }); // аутентификация успешна
     })
@@ -41,7 +58,7 @@ module.exports.login = (req, res) => {
       res.status(401).send({ message: err.message });
       // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
-};
+}; */
 
 module.exports.getCurrentUser = (req, res) => {
   User.findOne({
@@ -49,7 +66,11 @@ module.exports.getCurrentUser = (req, res) => {
     about: req.body.about,
     _id: req.user._id, // используем req.user
   })
-    .then((user) => res.send({ user }))
+    .then((user) => {
+      if (user) {
+        res.send({ user });
+      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+    })
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
@@ -57,7 +78,7 @@ module.exports.getCurrentUser = (req, res) => {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send(users))
+    .then((users) => res.send({ users }))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
@@ -69,7 +90,7 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return /* throw new */ NotFoundError('Запрашиваемый пользователь не найден');
+        return NotFoundError('Запрашиваемый пользователь не найден');
       }
       return res.send({ user });
     })
@@ -87,11 +108,7 @@ module.exports.updateUser = (req, res, next) => {
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } res.send(user);
-    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -107,12 +124,7 @@ module.exports.changeAvatar = (req, res, next) => {
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      }
-      res.send(user);
-    })
+    .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });

@@ -6,8 +6,7 @@ const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    // .populate(['owner', 'likes'])
-    .then((cards) => res.send(cards))
+    .then((cards) => res.send({ cards }))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
