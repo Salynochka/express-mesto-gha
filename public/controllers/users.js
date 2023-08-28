@@ -43,12 +43,17 @@ module.exports.login = (req, res) => {
     });
 };
 
-module.exports.getCurrentUser = (req) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findOne({
     name: req.body.name,
     about: req.body.about,
     _id: req.user._id, // используем req.user
-  });
+  })
+    .then((user) => res.send({ user }))
+    .catch(() => {
+      res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+    })
+    .catch(next);
 };
 
 module.exports.getUsers = (req, res, next) => {
@@ -66,9 +71,9 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
+        return /* throw new */ NotFoundError('Запрашиваемый пользователь не найден');
       }
-      return res.send(user);
+      return res.send({ user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -84,7 +89,11 @@ module.exports.updateUser = (req, res, next) => {
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      } res.send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -100,7 +109,12 @@ module.exports.changeAvatar = (req, res, next) => {
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      res.send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -124,6 +138,6 @@ module.exports.createUser = (req, res) => {
     .catch((err) => { // если данные не записались, вернём ошибку
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+      } else { res.status(409).send({ message: 'На сервере произошла ошибка' }); }
     });
 };

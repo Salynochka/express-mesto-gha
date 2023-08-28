@@ -1,3 +1,4 @@
+// const router = require('express').Router();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -12,7 +13,7 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -28,7 +29,8 @@ app.use(auth, (req, res) => {
   if (!auth) {
     res.status(401).send({ message: 'Необходимо авторизоваться' });
   }
-});
+  return res.send({ message: 'Всё в порядке' });
+}, routerUsers);
 
 app.use('/cards', validateCard, routerCards);
 
