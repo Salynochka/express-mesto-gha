@@ -6,7 +6,7 @@ const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res, next) => {
   Card.find()
-    .then((cards) => res.send(cards)) // ИСПРАВЛЕНО
+    .then((cards) => res.send(cards))
     .catch(next); // ИСПРАВЛЕНО
 };
 
@@ -14,13 +14,13 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const { owner } = req.params;
 
-  Card.create({ name, link, owner }) // ИЗМЕНЕНО
+  Card.create({ name, link, owner })
     .then((card) => res.send({
       name: card.name,
       link: card.link,
       _id: card._id,
       owner: req.params.userId, // ИЗМЕНЕНО
-    })) // ИЗМЕНЕНО
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -29,12 +29,18 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const { userId } = req.user;
+  const { cardId } = req.params;
+
+  Card.findByIdAndRemove(cardId)
     .then((card) => {
       if (!card) {
         return NotFoundError('Запрашиваемая карточка не найдена');
       }
-      return res.send(); // ИЗМЕНЕНО
+      if (card.owner !== userId) {
+        return res.status(403).send({ message: 'Попытка удалить чужую карточку' });
+      }
+      return res.send();
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -71,7 +77,7 @@ module.exports.addLike = (req, res) => {
 module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.params.userId } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {

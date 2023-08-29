@@ -61,17 +61,17 @@ module.exports.login = (req, res) => {
 }; */
 
 module.exports.getCurrentUser = (req, res) => {
-  const { userId } = req.params; // ИЗМЕНЕНО
+  const { userId } = req.params;
 
-  User.findOne({ userId }) // ИЗМЕНЕНО
+  User.findOne({ userId })
     .then((user) => {
       if (user) {
-        res.send({ // ИЗМЕНЕНО
+        res.send({
           name: req.body.name,
           about: req.body.about,
           _id: userId,
         });
-      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }); // ИЗМЕНЕНО
+      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
     })
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
@@ -92,7 +92,7 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден'); // ИЗМЕНЕНО
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       }
       res.send({ user }); // ИЗМЕНЕНО
     })
@@ -116,7 +116,7 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => res.send({
       name: user.name,
       about: user.about,
-    })) // ИЗМЕНЕНО
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -135,7 +135,7 @@ module.exports.changeAvatar = (req, res, next) => {
     // .orFail()
     .then((user) => res.send({
       avatar: user.avatar,
-    })) // ИЗМЕНЕНО
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
@@ -170,7 +170,7 @@ module.exports.createUser = (req, res) => {
       } else if (err.code === 11000) {
         res.status(409).send({ message: 'Пользователь с таким email уже существует' });
       } else {
-        res.status(401).send({ message: err.message }); // ИЗМЕНЕНО
+        res.status(401).send({ message: err.message });
       }
     });
 };
