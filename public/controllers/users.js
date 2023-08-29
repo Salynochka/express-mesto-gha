@@ -100,10 +100,9 @@ module.exports.getUserId = (req, res) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        return NotFoundError('Запрашиваемый пользователь не найден');
       }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -121,8 +120,9 @@ module.exports.updateUser = (req, res, next) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+        return NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     })
     .catch(next);
 };
@@ -140,8 +140,9 @@ module.exports.changeAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+        return NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     })
     .catch(next);
 };

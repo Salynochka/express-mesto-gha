@@ -28,60 +28,67 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
+    .orFail()
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
+      if (!card.owner.equals(req.user._id)) {
+        res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
       }
-      return Card.deleteOne(card); // ИЗМЕНЕНО
+      Card.deleteOne(card) // ИЗМЕНЕНО
+        .orFail()
+        .then(() => res.send({ message: 'Карточка удалена' }))
+        .catch((err) => {
+          if (err.name === 'CastError') {
+            res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+          } else {
+            res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+          }
+        });
     })
-    .then(() => res.send({ message: 'Карточка удалена' }))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      if (err.name === 'TypeError') {
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user.userId } },
+    { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .orFail()
-    .then((card) => {
-      if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
-      }
-      return res.send({ data: card });
-    })
+    .populate(['owner', 'likes'])
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      } else if (err.name === 'DocumentNotFoundError') {
+        return NotFoundError('Запрашиваемый пользователь не найден');
       }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
-    req.params._id,
+    req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
     .orFail()
-    .then((card) => res.send(card))
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      if (card) {
+        res.send(card);
+      }
+      return NotFoundError('Запрашиваемая карточка не найдена');
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       }
