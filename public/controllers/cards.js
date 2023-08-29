@@ -30,13 +30,11 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
-    .orFail()
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
         res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
       }
       Card.deleteOne(card) // ИЗМЕНЕНО
-        .orFail()
         .then(() => res.send({ message: 'Карточка удалена' }))
         .catch((err) => {
           if (err.name === 'CastError') {
@@ -78,7 +76,6 @@ module.exports.deleteLike = (req, res, next) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .orFail()
     .populate(['owner', 'likes'])
     .then((card) => {
       if (card) {
