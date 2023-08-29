@@ -1,7 +1,7 @@
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-error');
-const IncorrectData = require('../errors/incorrect-data-error');
 
+const INCORRECT_DATA = 400;
 const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res, next) => {
@@ -22,25 +22,27 @@ module.exports.createCard = (req, res) => {
     })) // ИЗМЕНЕНО
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return IncorrectData('Произошла ошибка');
-      }
-      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
     });
 };
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
+    .orFail()
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
         res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
       }
       Card.deleteOne(card) // ИЗМЕНЕНО
+        .orFail()
         .then(() => res.send({ message: 'Карточка удалена' }))
         .catch((err) => {
           if (err.name === 'CastError') {
-            return IncorrectData('Произошла ошибка');
+            res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+          } else {
+            res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
           }
-          return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
         });
     })
     .catch((err) => {
@@ -62,9 +64,9 @@ module.exports.addLike = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        IncorrectData('Произошла ошибка');
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.name === 'DocumentNotFoundError') {
-        NotFoundError('Запрашиваемый пользователь не найден');
+        return NotFoundError('Запрашиваемый пользователь не найден');
       }
       return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     });
@@ -76,6 +78,7 @@ module.exports.deleteLike = (req, res, next) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
+    .orFail()
     .populate(['owner', 'likes'])
     .then((card) => {
       if (card) {
@@ -87,9 +90,9 @@ module.exports.deleteLike = (req, res, next) => {
       if (err.name === 'DocumentNotFoundError') {
         next(new NotFoundError('Запрашиваемая карточка не найдена'));
       } else if (err.name === 'CastError') {
-        next(new IncorrectData('Произошла ошибка'));
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
-        next(res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
