@@ -6,20 +6,20 @@ const ERROR_CODE = 500;
 
 module.exports.getCards = (req, res, next) => {
   Card.find()
-    .then((cards) => res.send(cards))
+    .then((cards) => res.send({ cards })) // ИЗМЕНЕНО
     .catch(next); // ИСПРАВЛЕНО
 };
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  const { owner } = req.params;
+  const { owner } = req.users; // ИЗМЕНЕНО
 
   Card.create({ name, link, owner })
     .then((card) => res.send({
       name: card.name,
       link: card.link,
       _id: card._id,
-      owner: req.params.userId, // ИЗМЕНЕНО
+      owner: card.owner, // ИЗМЕНЕНО
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -48,12 +48,12 @@ module.exports.deleteCard = (req, res) => {
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.params.userId } },
+    { $addToSet: { likes: req.users.userId } }, // ИЗМЕНЕНО
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
+      if (!card._id) {
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       return res.send(card);
     })
@@ -71,14 +71,14 @@ module.exports.addLike = (req, res) => {
 module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.params.userId } }, // убрать _id из массива
+    { $pull: { likes: req.users.userId } }, // убрать _id из массива // ИЗМЕНЕНО
     { new: true },
   )
     .then((card) => {
-      if (card.owner === req.user._id) {
-        res.send(card);
+      if (card.owner === req.users.userId) { // ИЗМЕНЕНО
+        return res.send(card); // ИЗМЕНЕНО
       }
-      return NotFoundError('Запрашиваемая карточка не найдена');
+      throw new NotFoundError('Запрашиваемая карточка не найдена'); // ИЗМЕНЕНО
     })
     .catch((err) => {
       if (err.name === 'CastError') {

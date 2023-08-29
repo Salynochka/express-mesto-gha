@@ -24,9 +24,11 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
 
-app.use(auth, (res, req) => {
-  if (!req.headers.authorization) {
-    res.status(401).send({ message: 'Пользователь не авторизован' })
+app.use(auth, () => {});
+
+app.use((res, req) => {
+  if (!req.headers.authorization) { //
+    res.status(401).send({ message: 'Пользователь не авторизован' });
   }
 });
 
