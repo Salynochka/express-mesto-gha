@@ -26,12 +26,6 @@ app.post('/signin', validateLogin, login);
 
 app.use(auth, () => {});
 
-app.use((res, req) => {
-  if (!req.headers.authorization) { //
-    res.status(401).send({ message: 'Пользователь не авторизован' });
-  }
-});
-
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);
 

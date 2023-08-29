@@ -109,7 +109,7 @@ module.exports.getUserId = (req, res) => {
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  const { userId } = req.users; // ИЗМЕНЕНО
+  const { userId } = req.params;
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     // .orFail()
@@ -129,10 +129,10 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  const { userId } = req.users; // ИЗМЕНЕНО
+  const { userId } = req.params;
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .orFail() // ИЗМЕНЕНО
+    // .orFail()
     .then((user) => res.send({
       avatar: user.avatar,
     }))
