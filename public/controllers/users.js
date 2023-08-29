@@ -79,7 +79,7 @@ module.exports.getCurrentUser = (req, res) => {
 };
 
 module.exports.getUsers = (req, res) => {
-  User.find({})
+  User.find()
     .then((users) => res.send(users))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
@@ -94,7 +94,7 @@ module.exports.getUserId = (req, res) => {
       if (!user) {
         throw new NotFoundError('Запрашиваемый пользователь не найден');
       }
-      res.send({ user }); // ИЗМЕНЕНО
+      res.send(user); // ИЗМЕНЕНО
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -147,6 +147,12 @@ module.exports.changeAvatar = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400).send({ message: 'Email или пароль не могут быть пустыми ' });
+  }
+
   bcrypt.hash(req.body.password, 10) // записываем данные в базу
     .then((hash) => User.create({
       name: req.body.name,
@@ -168,7 +174,7 @@ module.exports.createUser = (req, res) => {
       if (err.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.code === 11000) {
-        res.status(409).send({ message: 'Пользователь с таким email уже существует' });
+        res.status(409).send({ message: 'Пользователь уже существует' });
       } else {
         res.status(401).send({ message: err.message });
       }

@@ -6,18 +6,18 @@ const randomString = crypto
   .toString('hex');
 
 module.exports.auth = (req, res, next) => {
-  const { token } = req.headers.authorization;
+  const { authorization } = req.headers;
 
-  if (!token) { // || !authorization.startsWith('Bearer ')) {  // ИЗМЕНЕНО
-    res.status(403).send({ message: 'Необходима авторизация' }); // ИЗМЕНЕНО
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    res.status(401).send({ message: 'Необходима авторизация' });
   }
-  // const token = authorization.replace('Bearer ', ''); // извлечём токен
+  const token = authorization.replace('Bearer ', ''); // извлечём токен
   let payload;
 
   try {
     payload = jwt.verify(token, randomString); // попытаемся верифицировать токен
   } catch (err) {
-    res.status(403).send({ message: 'Необходима авторизация' }); // отправим ошибку, если не получилось
+    res.status(401).send({ message: 'Необходима авторизация' }); // отправим ошибку, если не получилось
   }
   req.user = payload; // записываем пейлоуд в объект запроса
   next(); // пропускаем запрос дальше
