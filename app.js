@@ -24,25 +24,16 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
 
-app.use(auth, () => {});
+// app.use(auth, () => {});
 
-/* app.use(auth, (res, req) => {
+app.use(auth, (res, req) => {
   if (!req.headers.authorization) {
     res.status(401).send({ message: 'Пользователь не авторизован' });
   }
-}); */
+});
 
-app.use('/cards', (res, req) => {
-  if (!req.headers.authorization) {
-    res.status(401).send({ message: 'Пользователь не авторизован' });
-  }
-}, routerCards);
-
-app.use('/users', (res, req) => {
-  if (!req.headers.authorization) {
-    res.status(401).send({ message: 'Пользователь не авторизован' });
-  }
-}, routerUsers);
+app.use('/cards', routerCards);
+app.use('/users', routerUsers);
 
 app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
 

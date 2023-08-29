@@ -29,13 +29,11 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
-    .orFail()
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
         res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
       }
-      Card.deleteOne(card) // ИЗМЕНЕНО
-        .orFail()
+      Card.findByIdAndRemove(req.params.cardId) // ИЗМЕНЕНО
         .then(() => res.send({ message: 'Карточка удалена' }))
         .catch((err) => {
           if (err.name === 'CastError') {
