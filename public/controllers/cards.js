@@ -38,8 +38,8 @@ module.exports.deleteCard = (req, res, next) => {
         res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
       }
       return card.findByIdAndRemove(req.params.cardId)
-        .then((card) => {
-          res.send({ data: card });
+        .then((deletedCard) => {
+          res.send({ data: deletedCard });
         })
         .catch(next);
     })
