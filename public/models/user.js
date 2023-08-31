@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const validator = require('../../node_modules/validator');
 
 const userSchema = new mongoose.Schema({
@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
 
 module.exports = mongoose.model('user', userSchema);
 
-/* userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
@@ -55,4 +55,4 @@ module.exports = mongoose.model('user', userSchema);
           return user; // аутентификация успешна
         });
     });
-}; */
+};

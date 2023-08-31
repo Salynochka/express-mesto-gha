@@ -14,31 +14,19 @@ const randomString = crypto
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
-          }
-          return user; // аутентификация успешна
-        })
-        .then(() => {
-          const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
-          res.cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
-            maxAge: 3600000 * 24 * 7,
-            httpOnly: true,
-          })
-            .send({ token })
-            .end();
-        })
-        .catch((err) => {
-          res.status(401).send({ message: err.message });
-          // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-        });
+      const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
+      res.cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      })
+        .send({ token })
+        .end();
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+      // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
 };
 
