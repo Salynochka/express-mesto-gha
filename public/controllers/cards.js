@@ -10,16 +10,13 @@ module.exports.getCards = (req, res, next) => {
     .catch(next); // ИСПРАВЛЕНО
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
+  // const { owner } = req.params;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send(card))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
-    });
+    .then((card) => res.send({ data: card }))
+    .catch(next);
 };
 
 module.exports.deleteCard = (req, res) => {
