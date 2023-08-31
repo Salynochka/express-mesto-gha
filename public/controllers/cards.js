@@ -52,46 +52,46 @@ module.exports.deleteCard = (req, res, next) => {
     });
 };
 
-module.exports.addLike = (req, res) => {
+module.exports.addLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.params.userId } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
-      }
-      return res.send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
-};
-
-module.exports.deleteLike = (req, res) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.params.userId } }, // убрать _id из массива
+    { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
       if (card.owner === req.user._id) {
-        res.send(card);
+        res.send({ data: card });
       }
-      return NotFoundError('Запрашиваемая карточка не найдена');
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
+      } else if (err.name === 'CastError') {
+        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
+      }
+      next(err);
+    });
+};
+
+module.exports.deleteLike = (req, res, next) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { new: true },
+  )
+    .then((card) => {
+      if (card.owner === req.user._id) {
+        res.send({ data: card });
+      }
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
       } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        next(res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
       }
+      next(err);
     });
 };
