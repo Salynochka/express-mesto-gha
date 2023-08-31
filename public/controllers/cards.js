@@ -10,29 +10,45 @@ module.exports.getCards = (req, res, next) => {
     .catch(next); // ИСПРАВЛЕНО
 };
 
-module.exports.createCard = (req, res, next) => {
+module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  // const { owner } = req.params;
+  const { owner } = req.params;
 
-  Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ data: card }))
-    .catch(next);
+  Card.create({ name, link, owner })
+    .then((card) => res.send({
+      name: card.name,
+      link: card.link,
+      _id: card._id,
+      owner: req.params.userId, // ИЗМЕНЕНО
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+    });
 };
 
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         return NotFoundError('Запрашиваемая карточка не найдена');
       }
-      return res.send();
+      if (card.owner.toString() !== req.user._id) {
+        res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
+      }
+      return card.findByIdAndRemove(req.params.cardId)
+        .then((card) => {
+          res.send({ data: card });
+        })
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      }
+      } next(err);
     });
 };
 
