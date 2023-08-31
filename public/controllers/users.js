@@ -19,27 +19,26 @@ module.exports.login = (req, res) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      return res.send({ message: 'Всё верно!' }); // аутентификация успешна
-    })
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
-      res.send({ token });
-      res
-        .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          return user; // аутентификация успешна
         })
-        .end();
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-      // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+        .then(() => {
+          const token = jwt.sign({ _id: user._id }, randomString, { expiresIn: '7d' });
+          res.cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
+            maxAge: 3600000 * 24 * 7,
+            httpOnly: true,
+          })
+            .send({ token })
+            .end();
+        })
+        .catch((err) => {
+          res.status(401).send({ message: err.message });
+          // res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+        });
     });
 };
 
@@ -60,18 +59,32 @@ module.exports.login = (req, res) => {
     });
 }; */
 
-module.exports.getCurrentUser = (req, res) => {
-  const { userId } = req.users; // ИЗМЕНЕНО
+module.exports.getUserId = (req, res) => {
+  const { userId } = req.params;
 
-  User.findOne(userId) // ИЗМЕНЕНО
+  User.findById(userId) // ИЗМЕНЕНО
     .then((user) => {
-      if (user) {
-        res.send({
-          name: req.body.name,
-          about: req.body.about,
-          _id: userId,
-        });
-      } res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      res.send(user); // ИЗМЕНЕНО
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else if (err.name === 'DocumentNotFoundError') {
+        NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+    });
+};
+
+module.exports.getCurrentUser = (req, res) => {
+  // const { userId } = req.user; // ИЗМЕНЕНО
+
+  User.findById(req.user._id) // ИЗМЕНЕНО
+    .then((user) => {
+      res.send({ data: user });
     })
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
@@ -79,38 +92,17 @@ module.exports.getCurrentUser = (req, res) => {
 };
 
 module.exports.getUsers = (req, res) => {
-  User.find()
-    .then((users) => res.send(users))
+  User.find({})
+    .then((users) => res.send({ data: users }))
     .catch(() => {
       res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
     });
 };
 
-module.exports.getUserId = (req, res) => {
-  // const { userId } = req.params;
-
-  User.findById(req.user._id) // ИЗМЕНЕНО
-    .then((user) => {
-      if (!user._id) { // ИЗМЕНЕНО
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      }
-      res.send({ data: user }); // ИЗМЕНЕНО
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else if (err.name === 'DocumentNotFoundError') {
-        return NotFoundError('Запрашиваемый пользователь не найден');
-      }
-      return res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-    });
-};
-
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     // .orFail()
     .then((user) => res.send({
       name: user.name,
@@ -129,9 +121,8 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     // .orFail()
     .then((user) => res.send({
       avatar: user.avatar,
