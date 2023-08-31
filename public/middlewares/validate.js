@@ -42,7 +42,7 @@ module.exports.validateChangeAvatar = celebrate({
 
 module.exports.validateUserId = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required(), // ИЗМЕНЕНО
+    userId: Joi.string().required().length(24), // ИЗМЕНЕНО
   }),
 });
 
@@ -68,6 +68,6 @@ module.exports.validateCard = celebrate({
 
 module.exports.validateCardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required(), // ИЗМЕНЕНО
+    cardId: Joi.string().required().length(24), // ИЗМЕНЕНО
   }),
 });
