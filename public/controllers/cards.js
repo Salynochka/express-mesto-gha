@@ -28,7 +28,7 @@ module.exports.createCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res, next) => {
+module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -41,18 +41,20 @@ module.exports.deleteCard = (req, res, next) => {
         .then((deletedCard) => {
           res.send({ data: deletedCard });
         })
-        .catch(next);
+        .catch((err) => {
+          res.send({ message: err.message });
+        });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      } next(err);
+      }
     });
 };
 
-module.exports.addLike = (req, res, next) => {
+module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -66,15 +68,16 @@ module.exports.addLike = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else if (err.name === 'CastError') {
-        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+      } else {
+        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       }
-      next(err);
     });
 };
 
-module.exports.deleteLike = (req, res, next) => {
+module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -88,10 +91,9 @@ module.exports.deleteLike = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' }));
+        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
-        next(res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       }
-      next(err);
     });
 };
