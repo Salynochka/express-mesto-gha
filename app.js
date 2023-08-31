@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
+const cookieParser = require('./node_modules/cookie-parser');
 const routerCards = require('./public/routes/cards');
 const routerUsers = require('./public/routes/users');
 const { login, createUser } = require('./public/controllers/users');
@@ -14,6 +15,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -25,7 +27,7 @@ app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
 
 app.use(auth, (res, req) => {
-  if (!req.headers.authorization) {
+  if (!req.cookie.headers) {
     res.status(401).send({ message: 'Пользователь не авторизован' });
   }
 });

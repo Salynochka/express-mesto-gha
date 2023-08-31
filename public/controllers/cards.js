@@ -28,7 +28,7 @@ module.exports.createCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -41,30 +41,28 @@ module.exports.deleteCard = (req, res) => {
         .then((deletedCard) => {
           res.send({ data: deletedCard });
         })
-        .catch((err) => {
-          res.send({ message: err.message });
-        });
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
       } else {
         res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      }
+      } next(err);
     });
 };
 
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.params.userId } },
     { new: true },
   )
     .then((card) => {
-      if (card.owner === req.user._id) {
-        res.send({ data: card });
+      if (!card) {
+        return NotFoundError('Запрашиваемая карточка не найдена');
       }
-      throw new NotFoundError('Запрашиваемая карточка не найдена');
+      return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -80,14 +78,14 @@ module.exports.addLike = (req, res) => {
 module.exports.deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.params.userId } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {
       if (card.owner === req.user._id) {
-        res.send({ data: card });
+        res.send(card);
       }
-      throw new NotFoundError('Запрашиваемая карточка не найдена');
+      return NotFoundError('Запрашиваемая карточка не найдена');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
