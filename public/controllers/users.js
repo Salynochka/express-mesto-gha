@@ -2,11 +2,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('../../node_modules/jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-error');
+const IncorrectDataError = require('../errors/incorrect-data-error');
+const ServerError = require('../errors/server-error');
+const AlreayExistError = require('../errors/already-exist-error');
 
-const INCORRECT_DATA = 400;
-const ERROR_CODE = 500;
-
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email }).select('+password')
@@ -32,15 +32,13 @@ module.exports.login = (req, res) => {
         })
         .end();
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   const { userId } = req.params;
 
-  User.findOne({ userId })
+  User.findById({ userId })
     .then((user) => {
       if (user) {
         res.send({
@@ -48,24 +46,26 @@ module.exports.getCurrentUser = (req, res) => {
           about: req.body.about,
           _id: userId,
         });
-      } else {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        return;
       }
+      throw new IncorrectDataError('Произошла ошибка');
     })
-    .catch(() => {
-      res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ServerError('На сервере произошла ошибка'));
+        return;
+      }
+      next(err);
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find()
     .then((users) => res.send(users))
-    .catch(() => {
-      res.status(ERROR_CODE).send({ message: '«На сервере произошла ошибка' });
-    });
+    .catch(next);
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
@@ -73,16 +73,15 @@ module.exports.getUserId = (req, res) => {
       if (!user) {
         throw new NotFoundError('Запрашиваемый пользователь не найден');
       }
-      res.send(user); // ИЗМЕНЕНО
+      return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
       }
+      next(err);
     });
 };
 
@@ -91,19 +90,18 @@ module.exports.updateUser = (req, res, next) => {
   const { userId } = req.params;
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
-    // .orFail()
     .then((user) => res.send({
       name: user.name,
       about: user.about,
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
-    })
-    .catch(next);
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+      }
+      next(err);
+    });
 };
 
 module.exports.changeAvatar = (req, res, next) => {
@@ -117,15 +115,15 @@ module.exports.changeAvatar = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
       } else if (err.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
-    })
-    .catch(next);
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+      }
+      next(err);
+    });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -151,11 +149,11 @@ module.exports.createUser = (req, res) => {
     })
     .catch((err) => { // если данные не записались, вернём ошибку
       if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
       } else if (err.code === 11000) {
-        res.status(409).send({ message: 'Пользователь уже существует' });
+        next(new AlreayExistError('Пользователь уже существует'));
       } else {
-        res.status(401).send({ message: err.message });
+        next(err);
       }
     });
 };

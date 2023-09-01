@@ -1,16 +1,16 @@
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-error');
-
-const INCORRECT_DATA = 400;
-const ERROR_CODE = 500;
+const IncorrectDataError = require('../errors/incorrect-data-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 module.exports.getCards = (req, res, next) => {
   Card.find()
+    .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
-    .catch(next); // ИСПРАВЛЕНО
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const { owner } = req.params;
 
@@ -19,12 +19,14 @@ module.exports.createCard = (req, res) => {
       name: card.name,
       link: card.link,
       _id: card._id,
-      owner: req.params.userId, // ИЗМЕНЕНО
+      owner: req.params.userId,
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else { res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' }); }
+        next(new IncorrectDataError('Произошла ошибка'));
+        return;
+      }
+      next(err);
     });
 };
 
@@ -32,50 +34,51 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
+      } else if (card.owner.toString() !== req.user._id) {
+        throw new ForbiddenError('Нельзя удалить чужую карточку');
+      } else {
+        Card.findByIdAndRemove(req.params.cardId)
+          .then((deletedCard) => {
+            res.send({ data: deletedCard });
+          })
+          .catch(next);
       }
-      if (card.owner.toString() !== req.user._id) {
-        res.status(403).send({ message: 'Нельзя удалить чужую карточку' });
-      }
-      return card.findByIdAndRemove(req.params.cardId)
-        .then((deletedCard) => {
-          res.send({ data: deletedCard });
-        })
-        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      } next(err);
+        next(new IncorrectDataError('Произошла ошибка'));
+        return;
+      }
+      next(err);
     });
 };
 
-module.exports.addLike = (req, res) => {
+module.exports.addLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.params.userId } },
     { new: true },
   )
+    .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
-        return NotFoundError('Запрашиваемая карточка не найдена');
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
       } else if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
+        return;
       }
+      next(err);
     });
 };
 
-module.exports.deleteLike = (req, res) => {
+module.exports.deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.params.userId } }, // убрать _id из массива
@@ -85,13 +88,13 @@ module.exports.deleteLike = (req, res) => {
       if (card.owner === req.user._id) {
         res.send(card);
       }
-      return NotFoundError('Запрашиваемая карточка не найдена');
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Произошла ошибка' });
-      } else {
-        res.status(ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+        next(new IncorrectDataError('Произошла ошибка'));
+        return;
       }
+      next(err);
     });
 };
