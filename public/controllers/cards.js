@@ -4,9 +4,9 @@ const IncorrectDataError = require('../errors/incorrect-data-error');
 const ForbiddenError = require('../errors/forbidden-error');
 
 module.exports.getCards = (req, res, next) => {
-  Card.find()
+  Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => res.send(cards))
+    .then((cards) => res.send({ data: cards }))
     .catch(next);
 };
 
@@ -63,9 +63,10 @@ module.exports.addLike = (req, res, next) => {
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
+        res.send(card);
+        return;
       }
-      return res.send(card);
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -87,6 +88,7 @@ module.exports.deleteLike = (req, res, next) => {
     .then((card) => {
       if (card.owner === req.user._id) {
         res.send(card);
+        return;
       }
       throw new NotFoundError('Запрашиваемая карточка не найдена');
     })

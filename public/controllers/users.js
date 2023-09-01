@@ -24,27 +24,26 @@ module.exports.login = (req, res, next) => {
     })
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'SomeSecretKey123&', { expiresIn: '7d' });
-      res.send({ token });
       res
-        .cookie('jwt', token, { // token - наш JWT токен, который мы отправляем
+        .cookie('token', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-        })
-        .end();
+        });
+      res.send({ message: 'Вы авторизовались' });
     })
     .catch(next);
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  const { userId } = req.params;
+  const { userId } = req.user;
 
-  User.findById({ userId })
+  User.findById(userId)
     .then((user) => {
       if (user) {
         res.send({
-          name: req.body.name,
-          about: req.body.about,
-          _id: userId,
+          name: user.name,
+          about: user.about,
+          _id: user._id,
         });
         return;
       }
@@ -87,18 +86,21 @@ module.exports.getUserId = (req, res, next) => {
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
-    .then((user) => res.send({
-      name: user.name,
-      about: user.about,
-    }))
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then((user) => {
+      if (user) {
+        res.send({
+          name: user.name,
+          about: user.about,
+        });
+        return;
+      } throw new NotFoundError('Запрашиваемый пользователь не найден');
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new IncorrectDataError('Произошла ошибка'));
-      } else if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+        return;
       }
       next(err);
     });
@@ -106,18 +108,19 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    // .orFail()
-    .then((user) => res.send({
-      avatar: user.avatar,
-    }))
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      if (user) {
+        res.send({
+          avatar: user.avatar,
+        }); return;
+      } throw new NotFoundError('Запрашиваемый пользователь не найден');
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new IncorrectDataError('Произошла ошибка'));
-      } else if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+        return;
       }
       next(err);
     });
