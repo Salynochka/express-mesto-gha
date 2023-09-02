@@ -72,15 +72,12 @@ module.exports.getUserId = (req, res, next) => {
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  const { userId } = req.user._id;
+  const userId = req.user._id;
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (user) {
-        res.send({
-          name: user.name,
-          about: user.about,
-        });
+        res.send(user);
         return;
       }
       throw new NotFoundError('Запрашиваемый пользователь не найден');
@@ -96,15 +93,13 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  const { userId } = req.user._id;
+  const userId = req.user._id;
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     // .orFail()
     .then((user) => {
       if (user) {
-        res.send({
-          avatar: user.avatar,
-        });
+        res.send(user);
         return;
       }
       throw new NotFoundError('Запрашиваемый пользователь не найден');
