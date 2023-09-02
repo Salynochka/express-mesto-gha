@@ -5,6 +5,7 @@ const NotFoundError = require('../errors/not-found-error');
 const IncorrectDataError = require('../errors/incorrect-data-error');
 const ServerError = require('../errors/server-error');
 const AlreayExistError = require('../errors/already-exist-error');
+const NotAuthError = require('../errors/not-auth-error');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
@@ -12,15 +13,15 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new NotAuthError('Неправильные почта или пароль'));
       }
       return bcrypt.compare(password, user.password);
     })
     .then((matched) => {
       if (!matched) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        Promise.reject(new NotAuthError('Неправильные почта или пароль'));
       }
-      return res.send({ message: 'Всё верно!' }); // аутентификация успешна
+      res.send({ message: 'Всё верно!' }); // аутентификация успешна
     })
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'SomeSecretKey123&', { expiresIn: '7d' });
@@ -127,7 +128,7 @@ module.exports.createUser = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res.status(400).send({ message: 'Email или пароль не могут быть пустыми ' });
+    next(new IncorrectDataError('Email или пароль не могут быть пустыми '));
   }
 
   bcrypt.hash(req.body.password, 10) // записываем данные в базу
