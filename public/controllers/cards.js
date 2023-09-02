@@ -85,7 +85,7 @@ module.exports.deleteLike = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (card.owner === req.user._id) {
+      if (card) {
         res.send({ data: card });
         return;
       }
