@@ -25,15 +25,15 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('connected to db');
 });
 
-app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
+app.post('/signup', validateRegister, createUser);
 
 app.use(auth);
 
 app.use('/cards', routerCards);
 app.use('/users', routerUsers);
 
-app.use('*', (req, res, next) => {
+app.use('*', auth, (req, res, next) => {
   next(new NotFoundError('Неправильный путь'));
 });
 

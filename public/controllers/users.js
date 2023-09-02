@@ -5,32 +5,19 @@ const NotFoundError = require('../errors/not-found-error');
 const IncorrectDataError = require('../errors/incorrect-data-error');
 const ServerError = require('../errors/server-error');
 const AlreayExistError = require('../errors/already-exist-error');
-const NotAuthError = require('../errors/not-auth-error');
+// const NotAuthError = require('../errors/not-auth-error');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new NotAuthError('Неправильные почта или пароль'));
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        Promise.reject(new NotAuthError('Неправильные почта или пароль'));
-      }
-      res.send({ message: 'Всё верно!' }); // аутентификация успешна
-    })
+  User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'SomeSecretKey123&', { expiresIn: '7d' });
-      res.send({ token });
-      res
-        .cookie('token', token, {
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-        })
+      res.cookie('token', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      });
+      res.send({ token })
         .end();
     })
     .catch(next);
